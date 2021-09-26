@@ -39,5 +39,6 @@ private slots:
     void on_pushButton_pressed();
     void on_comboBox_currentTextChanged(const QString &arg1);
     void on_radius_valueChanged(int arg1);
+    void on_Fill_pressed();
 };
 #endif // MAINWINDOW_H

@@ -14,6 +14,7 @@ private:
     int m_gap = 10;
     list<QPoint> pointsList;
     list<QLine> lineList;
+    list<QPoint> flood_fill;
     list<pair<QPoint,int>> circleList;
 
     bool showGrid = false;
@@ -39,9 +40,11 @@ public:
     void setTime(double t);
     void setRadius(int);
     QString getAlgo();
+    void addFill(QPoint p);
 protected:
     void paintEvent(QPaintEvent *) override;
     void setPixel(int x, int y, QPainter& painter,QBrush brush=QBrush(Qt::yellow));
+    QColor getPixel(int x, int y);
     void mousePressEvent(QMouseEvent *ev) override;
     void mouseMoveEvent(QMouseEvent *ev) override;
     void bresenham(int x1, int y1, int x2, int y2, QPainter& painter);
@@ -51,6 +54,7 @@ protected:
     void polar_time(int rad);
     void polar_circle(QPoint const& centre, int rad, QPainter& painter);
     void draw_8_points(int xc, int yc, int x,int y, QPainter& painter);
+    void floodfill(int x,int y, QPainter& painter);
 signals:
     void sendMousePosition(QPoint&);
     void mousePressed(QPoint&);

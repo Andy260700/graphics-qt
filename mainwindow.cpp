@@ -93,3 +93,9 @@ void MainWindow::on_radius_valueChanged(int arg1)
     ui->widget->setRadius(arg1);
 }
 
+
+void MainWindow::on_Fill_pressed()
+{
+    ui->widget->addFill(lastClicked);
+}
+

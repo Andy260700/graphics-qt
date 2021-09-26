@@ -1,6 +1,7 @@
 #include "grid.h"
 #include <iostream>
 #include<time.h>
+#include<queue>
 
 grid::grid(QWidget *parent) : QWidget(parent)
 {
@@ -53,6 +54,10 @@ void grid::paintEvent(QPaintEvent *)
         else
             midpoint_circle(c.first,c.second,painter);
     }
+
+    for(auto const& p:flood_fill){
+        floodfill(p.x(),p.y(),painter);
+    }
 }
 
 grid::~grid() {}
@@ -86,6 +91,16 @@ void grid::setPixel(int x, int y, QPainter& painter, QBrush brush)
     int x1 = (int(width()/(m_gap*2))*m_gap  + x * m_gap);
     int y1 = (-y * m_gap + int(height()/(m_gap*2))*m_gap);
     painter.fillRect(x1, y1, m_gap, m_gap, brush);
+}
+
+QColor grid::getPixel(int x, int y)
+{
+    int x1 = (int(width()/(m_gap*2))*m_gap  + x * m_gap);
+    int y1 = (-y * m_gap + int(height()/(m_gap*2))*m_gap);
+    QPixmap pix = grab(QRect(x1, y1, m_gap, m_gap));
+    QImage img(pix.toImage());
+    QColor color(img.pixel(x1,y1));
+    return color;
 }
 
 void grid::drawPoint(int x, int y)
@@ -122,6 +137,10 @@ void grid:: addLine(QLine line){
 }
 void grid:: addCircle(pair<QPoint,int> circle){
     circleList.push_back(circle);
+    update();
+}
+void grid:: addFill(QPoint point){
+    flood_fill.push_back(point);
     update();
 }
 void grid::mouseMoveEvent(QMouseEvent *ev)
@@ -345,7 +364,29 @@ void grid::dda(QLine const& l, QPainter& painter)
      setTime(double((clock.nsecsElapsed()-start)*1.1));
      clock.invalidate();
 }
+void grid::floodfill(int x,int y, QPainter& painter){
+    queue<pair<int,int>> q;
+    q.push(pair<int,int>(x,y));
+    setPixel(x,y,painter, QBrush(Qt::white));
+    int _x[4]={0,0,1,-1};
+    int _y[4]={1,-1,0,0};
+    int w = int(width()/m_gap)/2;
+    int h = int(height()/m_gap)/2;
+    while(!q.empty()){
+        pair<int,int> p = q.front();
+        q.pop();
+        for(int i=0;i<4;i++){
+            int a = p.first+_x[i];
+            int b = p.second+_y[i];
+            if(a>=-w && b>=-h && a<=w && b<=h){
+                q.push(pair<int,int>(a,b));
+                setPixel(a,b,painter,QBrush(Qt::white));
+//                pointsList.push_back(QPoint(a,b));
+            }
+        }
+    }
 
+}
 void grid::mousePressEvent(QMouseEvent *ev)
 {
 //    if(ev->button()==Qt::LeftButton){
