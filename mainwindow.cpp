@@ -29,9 +29,17 @@ void MainWindow::on_show_grid_clicked(){
 void MainWindow::on_Draw_clicked(){
     if(!lastLine.isNull())
     {
-        ui->widget->addLine(lastLine);
-        ui->point1->setText(QString::number(lastLine.p1().x()) +", "+QString::number(lastLine.p1().y()));
-        ui->point2->setText(QString::number(lastLine.p2().x()) +", "+QString::number(lastLine.p2().y()));
+        QString a  = ui->widget->getAlgo();
+        if(a=="Midpoint_Circle"||a=="Polar_Circle"){
+            pair<QPoint,int> p(lastClicked, ui->widget->getRadius());
+            ui->widget->addCircle(p);
+        }
+        else
+        {
+            ui->widget->addLine(lastLine);
+            ui->point1->setText(QString::number(lastLine.p1().x()) +", "+QString::number(lastLine.p1().y()));
+            ui->point2->setText(QString::number(lastLine.p2().x()) +", "+QString::number(lastLine.p2().y()));
+        }
     }
 
 }
@@ -77,5 +85,11 @@ void MainWindow::on_pushButton_pressed()
 void MainWindow::on_comboBox_currentTextChanged(const QString &arg1)
 {
     ui->widget->setAlgo(arg1);
+}
+
+
+void MainWindow::on_radius_valueChanged(int arg1)
+{
+    ui->widget->setRadius(arg1);
 }
 

@@ -41,12 +41,18 @@ void grid::paintEvent(QPaintEvent *)
     }
 
     for(auto const& l : lineList){
-        if(algo=="DDA")
+        if(algo=="DDA_Line")
             dda(l, painter);
         else
             bresenham(l.p1().x(), l.p1().y(), l.p2().x(), l.p2().y(),painter);
     }
 
+    for(auto const& c : circleList){
+        if(algo=="Polar_Circle")
+            polar_circle(c.first,c.second,painter);
+        else
+            midpoint_circle(c.first,c.second,painter);
+    }
 }
 
 grid::~grid() {}
@@ -55,17 +61,28 @@ int grid::getGap() const
 {
     return m_gap;
 }
+QString grid::getAlgo()
+{
+    return algo;
+}
+int grid::getRadius() const
+{
+    return radius;
+}
 void grid::setGap(int gap)
 {
     m_gap = gap;
     update();
 }
+void grid::setRadius(int rad)
+{
+    radius = rad;
+}
 void grid::setAlgo(const QString &arg1){
     algo = arg1;
 }
-void grid::setPixel(int x, int y, QPainter& painter)
+void grid::setPixel(int x, int y, QPainter& painter, QBrush brush)
 {
-    QBrush brush(Qt::yellow);
     int x1 = (int(width()/(m_gap*2))*m_gap  + x * m_gap);
     int y1 = (-y * m_gap + int(height()/(m_gap*2))*m_gap);
     painter.fillRect(x1, y1, m_gap, m_gap, brush);
@@ -80,6 +97,7 @@ void grid::clear()
 {
     pointsList.clear();
     lineList.clear();
+    circleList.clear();
     update();
 }
 
@@ -102,6 +120,10 @@ void grid:: addLine(QLine line){
     lineList.push_back(line);
     update();
 }
+void grid:: addCircle(pair<QPoint,int> circle){
+    circleList.push_back(circle);
+    update();
+}
 void grid::mouseMoveEvent(QMouseEvent *ev)
 {
     QPoint mouse_pos=ev->pos();
@@ -112,7 +134,135 @@ void grid::mouseMoveEvent(QMouseEvent *ev)
         }
     }
 }
+void grid:: draw_8_points(int xc, int yc, int x,int y, QPainter& painter){
+        setPixel(xc+x, yc+y, painter, QBrush(Qt::red));
 
+        setPixel(xc-x, yc+y, painter, QBrush(Qt::yellow));
+
+        setPixel(xc+x, yc-y, painter, QBrush(Qt::blue));
+
+        setPixel(xc-x, yc-y, painter, QBrush(Qt::magenta));
+        if(x != y)
+        {
+
+            setPixel(xc+y, yc+x, painter, QBrush(Qt::cyan));
+
+            setPixel(xc-y, yc+x, painter, QBrush(Qt::lightGray));
+
+            setPixel(xc+y, yc-x, painter, QBrush(Qt::green));
+
+            setPixel(xc-y, yc-x, painter, QBrush(Qt::darkBlue));
+        }
+}
+void grid:: midpoint_time(int radius){
+    QElapsedTimer clock = QElapsedTimer();
+    clock.start();
+    qint64 start = clock.nsecsElapsed();
+    int x = radius, y = 0;
+    int P = 1 - radius;
+    while (x > y)
+    {
+        y++;
+
+        if (P <= 0)
+            P = P + 2*y + 1;
+
+        else
+        {
+            x--;
+            P = P + 2*y - 2*x + 1;
+        }
+
+        if (x < y)
+            break;
+    }
+
+    setTime(double(clock.nsecsElapsed()-start));
+    clock.invalidate();
+}
+void grid:: midpoint_circle(QPoint const& c, int radius, QPainter& painter){
+    midpoint_time(radius);
+                int x_center = c.x();
+                int y_center = c.y();
+
+                int x = radius, y = 0;
+
+
+                if (radius > 0)
+                {
+                   draw_8_points(x_center, y_center, x,y,painter);
+                }
+
+                int P = 1 - radius;
+                while (x > y)
+                {
+
+                    y++;
+
+                    if (P <= 0)
+                        P = P + 2*y + 1;
+
+                    else
+                    {
+                        x--;
+                        P = P + 2*y - 2*x + 1;
+                    }
+
+                    if (x < y)
+                        break;
+
+                    draw_8_points(x_center, y_center, x, y, painter);
+                }
+}
+void grid:: polar_time(int radius){
+    QElapsedTimer clock = QElapsedTimer();
+    clock.start();
+    qint64 start = clock.nsecsElapsed();
+
+    int x = 0;
+    int y = 0;
+    double angle = 0;
+    if(radius == 0) {
+        return;
+    }
+    const double angular_increment = 1.0 / radius;
+    while(x >= y) {
+        int x_new = round(radius * cos(angle));
+        int y_new = round(radius * sin(angle));
+//        if(x != x_new || y!= y_new)
+//        {
+//        }
+        x = x_new;
+        y = y_new;
+        angle += angular_increment;
+
+    }
+    setTime(double(clock.nsecsElapsed()-start));
+    clock.invalidate();
+}
+void grid:: polar_circle(QPoint const& c, int radius, QPainter& painter){
+    polar_time(radius);
+        int x = 0;
+        int y = 0;
+        double angle = 0;
+        if(radius == 0) {
+            return;
+        }
+        const double angular_increment = 1.0 / radius;
+        while(x >= y) {
+            int x_new = round(radius * cos(angle));
+            int y_new = round(radius * sin(angle));
+            if(x != x_new || y!= y_new)
+            {
+                draw_8_points(c.x(), c.y(), x, y, painter);
+            }
+
+            x = x_new;
+            y = y_new;
+            angle += angular_increment;
+
+        }
+}
 void grid:: bresenham(int x1, int y1, int x2, int y2, QPainter& painter)
 {
 //    time_t start,end;
@@ -174,7 +324,6 @@ void grid::dda(QLine const& l, QPainter& painter)
     QElapsedTimer clock = QElapsedTimer();
     clock.start();
     qint64 start = clock.nsecsElapsed();
-    double t = 0;
     int dx = l.p2().x() - l.p1().x();
     int dy = l.p2().y() - l.p1().y();
 
@@ -191,10 +340,9 @@ void grid::dda(QLine const& l, QPainter& painter)
         setPixel(round(x),round(y), painter);
         x += xinc;
         y += yinc;
-        t+=5;
     }
 //   time(&end);
-     setTime(double((clock.nsecsElapsed()-start)*1.4));
+     setTime(double((clock.nsecsElapsed()-start)*1.1));
      clock.invalidate();
 }
 
