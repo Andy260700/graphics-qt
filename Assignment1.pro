@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     grid.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    qpointhasher.cpp
 
 HEADERS += \
     grid.h \
-    mainwindow.h
+    mainwindow.h \
+    qpointhasher.h
 
 FORMS += \
     grid.ui

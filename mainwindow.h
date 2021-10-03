@@ -40,5 +40,9 @@ private slots:
     void on_comboBox_currentTextChanged(const QString &arg1);
     void on_radius_valueChanged(int arg1);
     void on_Fill_pressed();
+    void on_semi_major_valueChanged(int arg1);
+    void on_semi_minor_valueChanged(int arg1);
+    void on_colors_currentTextChanged(const QString &arg1);
+    void on_boundary_fill_pressed();
 };
 #endif // MAINWINDOW_H
