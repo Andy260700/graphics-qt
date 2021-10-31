@@ -17,7 +17,8 @@ SOURCES += \
 HEADERS += \
     grid.h \
     mainwindow.h \
-    qpointhasher.h
+    qpointhasher.h \
+    transformation.h
 
 FORMS += \
     grid.ui

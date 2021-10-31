@@ -2,7 +2,7 @@
 #include <iostream>
 #include<time.h>
 #include<queue>
-
+#include<unordered_set>
 grid::grid(QWidget *parent) : QWidget(parent)
 {
 //    resize(490, 490);
@@ -36,11 +36,20 @@ void grid::paintEvent(QPaintEvent *)
         }
     }
 
-    for(auto const& p: pointsList)
-    {
-      QBrush brush = QBrush(p.second);
-      setPixel(p.first.x(), p.first.y(), painter, brush);
-    }
+//    for(auto const& p: pointsList)
+//    {
+//      QBrush brush = QBrush(p.second);
+//      setPixel(p.first.x(), p.first.y(), painter, brush);
+//    }
+
+        for(auto const& p: pointsList)
+       {
+           QBrush brush = QBrush(p.second);
+//         QTransform transform = QTransform::fromScale(1, 2);
+           QPoint newP = p.first * transform;
+           setPixel(newP.x(), newP.y(), painter, brush);
+       }
+
 
 //    for(auto const& l : lineList){
 //        if(algo=="DDA_Line")
@@ -113,6 +122,10 @@ void grid::setSminor(int minor)
 void grid::setAlgo(const QString &arg1){
     algo = arg1;
 }
+void grid::addPolygon(list<QPoint> polygon)
+{
+    polygons.push_front(polygon);
+}
 void delay(int msecs)
 {
     QTime dieTime = QTime::currentTime().addMSecs(msecs);
@@ -149,6 +162,7 @@ void grid::clear()
     lineList.clear();
     circleList.clear();
     ellipseList.clear();
+    polygons.clear();
     update();
 }
 
@@ -590,6 +604,130 @@ void grid:: boundary_fill(int x,int y,  QColor color,  QColor stop){
     }
     update();
 }
+void grid::scanline(QColor color)
+{
+    for(auto && polygon: polygons)
+    {
+//        cout<<polygon.size()<<'\n';
+        QPoint bottomLeft, topRight;
+        for(auto&& point : polygon)
+        {
+            bottomLeft.setX(min(point.x(), bottomLeft.x()));
+            topRight.setX(max(point.x(), topRight.x()));
+            bottomLeft.setY(min(point.y(), bottomLeft.y()));
+            topRight.setY(max(point.y(), topRight.y()));
+        }
+
+        vector<QLine> edgeList(polygon.size());
+
+        for(auto [it, et] = std::pair(polygon.begin(), edgeList.begin()); it != polygon.end(); ++it, ++et)
+        {
+            et->setP1(*it);
+
+            if(next(it) == polygon.end())
+            {
+                et->setP2(*polygon.begin());
+            }
+            else
+            {
+                et->setP2(*next(it));
+            }
+
+            if(et->p1().y() > et->p2().y())
+            {
+                auto p1 = et->p1();
+                et->setP1(et->p2());
+                et->setP2(p1);
+            }
+
+        }
+
+        sort(edgeList.begin(), edgeList.end(), [](QLine a, QLine b){return a.p1().y() < b.p1().y();});
+
+        auto curr = edgeList.begin();
+
+        list<tuple<QLine, const double, double>> al;
+
+        for(int j = bottomLeft.y(); j <= topRight.y(); ++j)
+        {
+            while(curr != edgeList.end() && curr->p1().y() <= j)
+            {
+                if(curr->p1().y() != curr->p2().y())
+                    al.push_back({*curr, (curr->p2().x() - curr->p1().x()) / (curr->p2().y() - curr->p1().y() * 1.0),curr->p1().x()});
+                curr++;
+            }
+
+
+            unordered_set<int> intersection_set;
+
+            for(auto it = al.begin(); it != al.end();)
+            {
+                auto& [line, inv_slope, intersection] = *it;
+                if(j == line.p2().y())
+                {
+                    it = al.erase(it);
+                }
+                else
+                {
+                    int _count = 0;
+                    for(auto && [_line, _s, _x] : al)
+                    {
+                        if(_line.p1() == QPoint(intersection, j))
+                        {
+                            ++_count;
+                        }
+                    }
+                    if(_count == 0 || _count & 1)
+                    {
+                        intersection_set.insert(round(intersection));
+                        drawPoint(round(intersection), j);
+                    }
+
+                    intersection += (line.p2().x() - line.p1().x()) / (line.p2().y() - line.p1().y() * 1.0);
+                    ++it;
+                }
+            }
+
+            int count = 0;
+            for(int i = bottomLeft.x(); i <= topRight.x(); ++i)
+            {
+                if(intersection_set.find(i) != intersection_set.end())
+                {
+                    count++;
+                }
+                else if(count & 1)
+                {
+                    QPoint newP(i, j);
+                    if(pointsList.find(newP) == pointsList.end())
+                    {
+                        pointsList[newP] = color;
+                        update();
+                        delay(10);
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+void grid::scale_transform(double f1, double f2){
+    transform.scale(f1,f2);
+    update();
+}
+void grid::translate_transform(double f1, double f2){
+    transform.translate(f1,f2);
+    update();
+}
+void grid::rotate_transform(double factor){
+    transform.rotate(factor);
+    update();
+}
+void grid::shear_transform(double f1, double f2){
+    transform.shear(f1,f2);
+    update();
+}
+
 void grid::mousePressEvent(QMouseEvent *ev)
 {
 //    if(ev->button()==Qt::LeftButton){

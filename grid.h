@@ -14,12 +14,14 @@ class grid : public QWidget
     Q_OBJECT
 private:
     int m_gap = 10;
-//    list<QPoint> pointsList;
+//  list<QPoint> pointsList;
     unordered_map<QPoint, QColor, QPointHasher> pointsList;
     list<QLine> lineList;
     list<QPoint> flood_fill;
+    list<list<QPoint>> polygons;
     list<pair<QPoint,int>> circleList;
     list<pair<QPoint, pair<int,int>>> ellipseList;
+    QTransform transform = QTransform::fromScale(1, 1);
     bool showGrid = false;
     bool showAxes = false;
     int radius = 0;
@@ -55,6 +57,7 @@ public:
     QString getAlgo();
     QString getFill();
     void addFill(QPoint p);
+    void addPolygon(list<QPoint> polygon);
     void bresenham(int x1, int y1, int x2, int y2 );
     void dda(QLine const& l );
     void midpoint_circle(QPoint const& centre, int rad );
@@ -63,6 +66,11 @@ public:
     void midpoint_ellipse(QPoint const& centre, int a, int b);
     void floodfill(int x,int y,  QColor color);
     void boundary_fill(int x,int y,  QColor color, QColor stop=QColor(Qt::yellow));
+    void scanline(QColor);
+    void scale_transform(double f1, double f2);
+    void translate_transform(double f1, double f2);
+    void rotate_transform(double factor);
+    void shear_transform(double f1, double f2);
 protected:
     void paintEvent(QPaintEvent *) override;
     void setPixel(int x, int y, QPainter& painter ,QBrush brush=QBrush(Qt::yellow));

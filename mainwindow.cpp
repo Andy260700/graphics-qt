@@ -90,6 +90,14 @@ void MainWindow::showMousePressed(QPoint& pos){
     lastClicked=pos;
     lastLine.setP1(lastLine.p2());
     lastLine.setP2(lastClicked);
+    if(isDrawingPolygon)
+        {
+            if(!poly.empty())
+            {
+                ui->widget->dda(QLine(pos, poly.front()));
+            }
+            poly.push_front(pos);
+        }
 }
 
 void MainWindow::on_gridsize_valueChanged(int gap)
@@ -147,5 +155,49 @@ void MainWindow::on_boundary_fill_pressed()
     QString col = ui->widget->getFill();
     QColor color = QColor(col);
     ui->widget->boundary_fill(lastClicked.x(), lastClicked.y(), color);
+}
+
+
+void MainWindow::on_polygon_clicked()
+{
+    if(!isDrawingPolygon) {
+            ui->polygon->setText("End Polygon");
+            isDrawingPolygon = true;
+        } else {
+//        cout<<poly.size()<<" "<<poly.front().x()<<" "<<poly.back().y()<<'\n';
+            ui->widget->dda(QLine(poly.back(), poly.front()));
+            ui->widget->addPolygon(poly);
+            isDrawingPolygon = false;
+            ui->polygon->setText("Start Polygon");
+            poly.clear();
+            ui->widget->scanline(ui->widget->getFill());
+        }
+}
+
+
+
+
+
+void MainWindow::on_rotate_input_valueChanged(int arg1)
+{
+    ui->widget->rotate_transform(arg1);
+}
+
+
+void MainWindow::on_translate_input_valueChanged(int arg1)
+{
+   ui->widget->translate_transform(arg1,arg1);
+}
+
+
+void MainWindow::on_shear_input_valueChanged(int arg1)
+{
+    ui->widget->shear_transform(arg1,arg1);
+}
+
+
+void MainWindow::on_scale_input_valueChanged(int arg1)
+{
+    ui->widget->scale_transform(arg1,arg1);
 }
 

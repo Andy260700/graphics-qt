@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <list>
+
+using namespace std;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,6 +22,8 @@ private:
     Ui::MainWindow *ui;
     QPoint lastClicked;
     QLine lastLine;
+    bool isDrawingPolygon = false;
+    list<QPoint> poly;
 public slots:
     void showMousePosition(QPoint& pos);
     void showMousePressed(QPoint& pos);
@@ -44,5 +49,11 @@ private slots:
     void on_semi_minor_valueChanged(int arg1);
     void on_colors_currentTextChanged(const QString &arg1);
     void on_boundary_fill_pressed();
+    void on_polygon_clicked();
+
+    void on_rotate_input_valueChanged(int arg1);
+    void on_translate_input_valueChanged(int arg1);
+    void on_shear_input_valueChanged(int arg1);
+    void on_scale_input_valueChanged(int arg1);
 };
 #endif // MAINWINDOW_H
