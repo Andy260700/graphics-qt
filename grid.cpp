@@ -42,13 +42,51 @@ void grid::paintEvent(QPaintEvent *)
 //      setPixel(p.first.x(), p.first.y(), painter, brush);
 //    }
 
-        for(auto const& p: pointsList)
-       {
-           QBrush brush = QBrush(p.second);
-//         QTransform transform = QTransform::fromScale(1, 2);
-           QPoint newP = p.first * transform;
-           setPixel(newP.x(), newP.y(), painter, brush);
-       }
+
+
+
+        if(isTransformation)
+        {
+            list<QLine> newPoly;
+            for(auto && polygon: transform_polygons)
+            {
+                newPoly.push_back(QLine(polygon[0] * transform, polygon.back() * transform));
+
+                for(size_t i = 0; i < polygon.size() - 1; ++i)
+                {
+                    newPoly.push_back(QLine(polygon[i + 1] * transform, polygon[i] * transform));
+                }
+            }
+
+            list<QPoint> points;
+
+            for(auto &&l: newPoly)
+            {
+                dda(l, points);
+            }
+
+            for(auto &&p: points)
+            {
+                QBrush brush = QBrush("green");
+                setPixel(p.x(), p.y(), painter, brush);
+            }
+
+        }
+        else
+        {
+//            for(auto const& [p, color]: pointsList)
+//            {
+//                setPixel(p.x(), p.y(), color, painter);
+//            }
+            for(auto const& p: pointsList)
+           {
+               QBrush brush = QBrush(p.second);
+    //         QTransform transform = QTransform::fromScale(1, 2);
+//               QPoint newP = p.first * transform;
+               setPixel(p.first.x(), p.first.y(), painter, brush);
+           }
+        }
+
 
 
 //    for(auto const& l : lineList){
@@ -150,7 +188,10 @@ QColor grid::getPixel(int x, int y)
     QColor color(img.pixel(x1,y1));
     return color;
 }
-
+void grid::addTransformPolygon(list<QPoint> polygon)
+{
+    transform_polygons.push_back(vector<QPoint>(polygon.begin(), polygon.end()));
+}
 void grid::drawPoint(int x, int y, QColor color)
 {
     pointsList[QPoint(x, y)] = color;
@@ -163,6 +204,7 @@ void grid::clear()
     circleList.clear();
     ellipseList.clear();
     polygons.clear();
+    transform_polygons.clear();
     update();
 }
 
@@ -207,6 +249,29 @@ void grid::mouseMoveEvent(QMouseEvent *ev)
         }
     }
 }
+
+void grid::dda(QLine const&l, list<QPoint>& p) const
+{
+    int dx = l.p2().x() - l.p1().x();
+    int dy = l.p2().y() - l.p1().y();
+
+    int steps = max(abs(dx), abs(dy));
+
+    double xinc = dx / (double) steps;
+    double yinc = dy / (double) steps;
+
+
+    double x = l.p1().x();
+    double y = l.p1().y();
+    for (int i = 0; i <= steps; i++)
+    {
+        p.push_back(QPoint(round(x),round(y)));
+        x += xinc;
+        y += yinc;
+    }
+}
+
+
 void grid:: draw_4_points(int xc, int yc, int x,int y ){
 //        setPixel(xc+x, yc+y, painter, QBrush(Qt::red));
 //        setPixel(xc-x, yc+y, painter, QBrush(Qt::yellow));
@@ -727,7 +792,21 @@ void grid::shear_transform(double f1, double f2){
     transform.shear(f1,f2);
     update();
 }
-
+void grid::reflect_transform(double angle)
+{
+    transform.rotate(angle).scale(1, -1).rotate(-angle);
+    update();
+}
+void grid::resetTransform()
+{
+    transform = QTransform();
+    update();
+}
+void grid::setTransformationMode(bool val)
+{
+    isTransformation = val;
+    update();
+}
 void grid::mousePressEvent(QMouseEvent *ev)
 {
 //    if(ev->button()==Qt::LeftButton){

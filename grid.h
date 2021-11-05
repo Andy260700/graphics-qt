@@ -19,6 +19,8 @@ private:
     list<QLine> lineList;
     list<QPoint> flood_fill;
     list<list<QPoint>> polygons;
+    bool isTransformation = false;
+    list<vector<QPoint>> transform_polygons;
     list<pair<QPoint,int>> circleList;
     list<pair<QPoint, pair<int,int>>> ellipseList;
     QTransform transform = QTransform::fromScale(1, 1);
@@ -60,6 +62,7 @@ public:
     void addPolygon(list<QPoint> polygon);
     void bresenham(int x1, int y1, int x2, int y2 );
     void dda(QLine const& l );
+    void dda(QLine const&, list<QPoint>&) const;
     void midpoint_circle(QPoint const& centre, int rad );
     void polar_circle(QPoint const& centre, int rad );
     void polar_ellipse(QPoint const& centre, int a, int b );
@@ -71,6 +74,10 @@ public:
     void translate_transform(double f1, double f2);
     void rotate_transform(double factor);
     void shear_transform(double f1, double f2);
+    void reflect_transform(double angle);
+    void resetTransform();
+    void setTransformationMode(bool);
+    void addTransformPolygon(list<QPoint> polygon);
 protected:
     void paintEvent(QPaintEvent *) override;
     void setPixel(int x, int y, QPainter& painter ,QBrush brush=QBrush(Qt::yellow));

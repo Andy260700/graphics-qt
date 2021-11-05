@@ -23,6 +23,7 @@ private:
     QPoint lastClicked;
     QLine lastLine;
     bool isDrawingPolygon = false;
+    bool transformation = false;
     list<QPoint> poly;
 public slots:
     void showMousePosition(QPoint& pos);
@@ -51,9 +52,15 @@ private slots:
     void on_boundary_fill_pressed();
     void on_polygon_clicked();
 
-    void on_rotate_input_valueChanged(int arg1);
-    void on_translate_input_valueChanged(int arg1);
-    void on_shear_input_valueChanged(int arg1);
-    void on_scale_input_valueChanged(int arg1);
+    void on_AlgoBox_currentChanged(int index);
+    void on_scale_button_clicked();
+    void on_translate_button_clicked();
+    void on_shear_button_clicked();
+    void on_rotate_button_clicked();
+    void on_reset_clicked();
+    void on_reflect_x_clicked();
+    void on_reflect_y_clicked();
+    void on_reflect_clicked();
+    void on_transformation_mode_toggled(bool checked);
 };
 #endif // MAINWINDOW_H

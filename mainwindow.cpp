@@ -165,39 +165,103 @@ void MainWindow::on_polygon_clicked()
             isDrawingPolygon = true;
         } else {
 //        cout<<poly.size()<<" "<<poly.front().x()<<" "<<poly.back().y()<<'\n';
-            ui->widget->dda(QLine(poly.back(), poly.front()));
-            ui->widget->addPolygon(poly);
-            isDrawingPolygon = false;
-            ui->polygon->setText("Start Polygon");
-            poly.clear();
-            ui->widget->scanline(ui->widget->getFill());
+//            ui->widget->dda(QLine(poly.back(), poly.front()));
+//            ui->widget->addPolygon(poly);
+//            isDrawingPolygon = false;
+//            ui->polygon->setText("Start Polygon");
+//            poly.clear();
+//            ui->widget->scanline(ui->widget->getFill());
+                if(transformation)
+                {
+                    ui->widget->addTransformPolygon(poly);
+                    ui->widget->setTransformationMode(transformation);
+                }
+                else
+                    ui->widget->addPolygon(poly);
+                isDrawingPolygon = false;
+                ui->polygon->setText("Start Polygon");
+                poly.clear();
         }
 }
 
-
-
-
-
-void MainWindow::on_rotate_input_valueChanged(int arg1)
+void MainWindow::on_AlgoBox_currentChanged(int index)
 {
-    ui->widget->rotate_transform(arg1);
+    if(index == 4)
+    {
+        transformation = true;
+    }
+    else
+    {
+        transformation = false;
+        ui->widget->setTransformationMode(transformation);
+    }
+}
+
+void MainWindow::on_scale_button_clicked()
+{
+    auto x = ui->scale_x->value();
+    auto y = ui->scale_y->value();
+    ui->widget->scale_transform(x, y);
 }
 
 
-void MainWindow::on_translate_input_valueChanged(int arg1)
+void MainWindow::on_translate_button_clicked()
 {
-   ui->widget->translate_transform(arg1,arg1);
+    auto x = ui->translate_x->value();
+    auto y = ui->translate_y->value();
+    ui->widget->translate_transform(x, y);
 }
 
 
-void MainWindow::on_shear_input_valueChanged(int arg1)
+void MainWindow::on_shear_button_clicked()
 {
-    ui->widget->shear_transform(arg1,arg1);
+    auto x = ui->shear_x->value();
+    auto y = ui->shear_y->value();
+    ui->widget->shear_transform(x, y);
 }
 
 
-void MainWindow::on_scale_input_valueChanged(int arg1)
+void MainWindow::on_rotate_button_clicked()
 {
-    ui->widget->scale_transform(arg1,arg1);
+    ui->widget->rotate_transform(ui->rotate_2->value());
+}
+
+
+void MainWindow::on_reset_clicked()
+{
+    ui->widget->resetTransform();
+}
+
+
+void MainWindow::on_reflect_x_clicked()
+{
+    ui->widget->reflect_transform(0);
+}
+
+
+void MainWindow::on_reflect_y_clicked()
+{
+    ui->widget->reflect_transform(90);
+}
+
+
+void MainWindow::on_reflect_clicked()
+{
+    ui->widget->reflect_transform(ui->angle_rf->value());
+}
+
+
+
+void MainWindow::on_transformation_mode_toggled(bool checked)
+{
+    if(checked)
+    {
+        transformation = true;
+    }
+    else
+    {
+        transformation = false;
+        ui->widget->setTransformationMode(transformation);
+    }
 }
 
